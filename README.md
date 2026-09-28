@@ -1,1 +1,119 @@
+# CAM-GP: Composite Additive-Multiplicative Gaussian Process
 code for the paper 《A composite additive-multiplicative Gaussian process surrogate for mixed inputs》
+MATLAB implementation of the **CAM-GP** surrogate for Gaussian process modelling with mixed categorical and continuous inputs, together with its efficient variant **ECAM-GP**.
+## Requirements
+
+- MATLAB R2024a or later
+- Optimization Toolbox (`fmincon`, `fminunc`)
+
+No other toolboxes are required.
+
+---
+
+## Repository structure
+
+```
+.
+├── CAM-GP/                     proposed CAM-GP
+│   ├── CAM_main.m              driver script - set DATASET and run this file
+│   ├── CAM_parafunc.m          penalised maximum likelihood estimation and evaluation
+│   ├── CAM_eval_f_list.m       penalised negative log-likelihood (objective function)
+│   ├── CAM_covx_add.m          covariance function
+│   ├── CAM_covx_m_add.m        covariance for a stacked pair of inputs
+│   └── CAM_rmse.m              test-set prediction and root-mean-square error
+│
+├── ECAM-GP/                    proposed ECAM-GP (efficient variant)
+│   ├── ECAM_main.m             driver script - set DATASET and run this file
+│   ├── ECAM_parafunc.m
+│   ├── ECAM_eval_f_list.m
+│   ├── ECAM_covx_add.m
+│   ├── ECAM_covx_m_add.m
+│   └── ECAM_rmse.m
+│
+└── dataset/                    data for the case studies
+    ├── example1.mat
+    ├── example2.mat
+    ├── beam_bending.mat
+    ├── embankment.mat
+    └── embankment_extended.mat
+```
+
+The two folders `CAM-GP/` and `ECAM-GP/` have the same structure and the same function signatures, so switching between the two models requires no other change than calling the corresponding main script.
+
+---
+
+## How to run
+
+1. Add the folder of the model you want to run to the MATLAB path, or make it the current folder:
+
+   ```matlab
+   addpath('CAM-GP')      % or: addpath('ECAM-GP')
+   ```
+
+2. Set `DATASET` at the top of the main script to select the case study:
+
+   | `DATASET` | Case study           | Inputs                      | Training / test |
+   | --------- | -------------------- | --------------------------- | --------------- |
+   | `1`       | Example 1            | 3 continuous, 3 categorical | 81 / 1215       |
+   | `2`       | Example 2            | 9 continuous, 9 categorical | 243 / 1215      |
+   | `3`       | Beam bending         | 2 continuous, 1 categorical | 60 / 10000      |
+   | `4`       | Embankment           | 1 continuous, 3 categorical | 200 / 29        |
+   | `5`       | Embankment, extended | 3 continuous, 3 categorical | 200 / 29        |
+
+3. Run the script, for example:
+
+   ```matlab
+   CAM_main           % for the CAM-GP model
+   ECAM_main          % for the ECAM-GP model
+   ```
+
+> **Note.** Save the file before running it after editing `DATASET`. If the file has
+> unsaved changes, MATLAB executes a temporary copy of the script from its editor folder, and the `dataset` folder can then no longer be located.
+
+The script prints the case-study summary and, on completion, the test-set root-mean-square error (RMSE) and the Nash-Sutcliffe efficiency (NSE):
+
+```
+Case study   : Example 1: 3 continuous, 3 categorical (3 levels each)
+Data file    : example1.mat
+Inputs       : p = 3 continuous, q = 3 categorical, m = [3 3 3]
+Training set : 81 samples
+Test set     : 1215 samples
+Settings     : tau = 1, lambda1 = 0.005, lambda2 = 0.01, maxIter = 200
+
+--------------------------------------------
+  RMSE  = 0.406322
+  NSE   = 0.899359
+  Time  = 3.30 s
+--------------------------------------------
+```
+
+---
+
+## Data format
+
+Every file in `dataset/` is a MATLAB `.mat` file containing the following variables.
+
+| Variable     | Size              | Description                                                  |
+| ------------ | ----------------- | ------------------------------------------------------------ |
+| `xtr`, `xte` | `n × p`, `n2 × p` | continuous variables, training and test sets                 |
+| `ztr`, `zte` | `n × q`, `n2 × q` | categorical variables, levels coded `1 … m(h)`, training and test sets |
+| `ytr`, `yte` | `n × 1`, `n2 × 1` | response, training and test sets                             |
+| `p`          | scalar            | number of continuous input variables                         |
+| `q`          | scalar            | number of categorical input variables                        |
+| `m`          | `1 × q`           | number of levels of each categorical variable                |
+| `caseName`   | char              | description of the case study                                |
+
+| File                      | Description                                                  |
+| ------------------------- | ------------------------------------------------------------ |
+| `example1.mat`            | synthetic test function, adapted from Xiao et al. (2021)     |
+| `example2.mat`            | synthetic test function, adapted from Xiao et al. (2021)     |
+| `beam_bending.mat`        | cantilever beam, response generated by a finite element model, following Zhang et al. (2020) |
+| `embankment.mat`          | full-scale reinforced and pile-supported embankment on soft soil, finite element model following Liu and Rowe (2015) |
+| `embankment_extended.mat` | the embankment data with two additional continuous variables that are independent of the response |
+
+---
+
+## License
+
+The code is released under the MIT License. The datasets are released under
+CC BY 4.0.
