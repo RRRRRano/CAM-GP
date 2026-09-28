@@ -1,0 +1,24 @@
+# Python缓存文件
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+*.out
+
+# 数据集、大数值文件
+data/
+dataset/
+*.npy
+*.npz
+*.h5
+*.mat
+*.csv
+
+# 编辑器配置
+.vscode/
+.idea/
+*.ipynb_checkpoints
+
+# Mac系统文件
+.DS_Store
